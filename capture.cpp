@@ -39,7 +39,7 @@ bool Capture::isRunning() {
 
 uint64_t TimeOffset = 0;
 uint64_t StartTimestamp = 0;
-
+uint64_t PacketNumber = 0;
 
 
 
@@ -361,7 +361,7 @@ void WINAPI stream_raw_data(int channel,unsigned char *data,int data_len)
     );
     ViewtoolPacket p;
     getViewtoolPacket(channel,data,data_len,&p);
-    std::cout << ms.count() << ",Raw:Viewtool," << ((uint16_t)p.channel) << "," << ((uint16_t)p.preamble1m) << "," << p.preamble2m << ","
+    std::cout << ms.count() << "," << PacketNumber << ",Raw:Viewtool," << ((uint16_t)p.channel) << "," << ((uint16_t)p.preamble1m) << "," << p.preamble2m << ","
               << p.timestamp << "," << ((uint16_t)p.tenthByte) << "," << int_to_hex(p.accessAddress) << ","
               << p.pduHeader << "," << ((uint16_t)p.payloadLength) << "," << dataAsString(p.payloadLength,p.payloadData) << ","
               << crcAsString(p.crc) << std::endl;
@@ -383,11 +383,13 @@ void WINAPI stream_summary(int channel,unsigned char *data,int data_len) {
 void WINAPI get_raw_data_cb(int dev_index,int channel,unsigned char *data,int data_len)
 {
     invocationCount++;
+    PacketNumber++;
     stream_raw_data(channel,data,data_len);
 }
 
 void Capture::start(int deviceIndex)
 {
+    PacketNumber = 0;
     int ret = scan_dev(NULL);
         if (0 >= ret){
             std::cerr << "Error: No device connected" << std::endl;
